@@ -50,9 +50,9 @@ class plgFinderResearchSearch extends FinderIndexerAdapter
     {
 
         parent::__construct($subject, $config);
-        $this->loadLanguage();        
+        $this->loadLanguage();
 
-        // The folloing file is excluded from the public git repository (.gitignore) to prevent 
+        // The folloing file is excluded from the public git repository (.gitignore) to prevent
         // accidental exposure of database credentials. However, you will need to create that file
         // in the same directory as this file, and it should contain the follow credentials:
         // $database = '[A]';
@@ -100,8 +100,7 @@ class plgFinderResearchSearch extends FinderIndexerAdapter
     protected function index(FinderIndexerResult $item)
     {
         // Check if the extension is enabled
-        if (JComponentHelper::isEnabled($this->extension) == false)
-        {
+        if (JComponentHelper::isEnabled($this->extension) == false) {
             return;
         }
 
@@ -181,8 +180,7 @@ class plgFinderResearchSearch extends FinderIndexerAdapter
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Convert the items to result objects.
-        foreach ($rows as $row)
-        {
+        foreach ($rows as $row) {
             // Convert the item to a result object.
             $item = JArrayHelper::toObject($row, 'FinderIndexerResult');
 
@@ -199,8 +197,7 @@ class plgFinderResearchSearch extends FinderIndexerAdapter
             $item->layout = $this->layout;
 
             // Set the extension if present
-            if (isset($row->extension))
-            {
+            if (isset($row->extension)) {
                 $item->extension = $row->extension;
             }
             $item->alias  = $item->alias . '-' . $item->id;

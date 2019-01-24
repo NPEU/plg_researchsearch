@@ -48,24 +48,11 @@ class plgFinderResearchSearch extends JPlugin
     {
 
         parent::__construct($subject, $config);
-        $this->loadLanguage();
+        $this->loadLanguage();        
 
-        $public_root_path  = realpath($_SERVER['DOCUMENT_ROOT']) . '/' ;
-
-        $localhost = false;
-        if (strpos(JPATH_BASE, 'W:') !== false || strpos(JPATH_BASE, 'C:') !== false) {
-            $localhost = true;
-        }
-        $gridlight = false;
-        if (strpos($public_root_path, 'andr2063') !== false) {
-            $gridlight = true;
-        }
-        define('LOCALHOST', $localhost);
-        define('_CORE', true);
-
-        // This file is excluded from the public git repository (.gitignore) to prevent accidental
-        // exposure of database credentials. However, you will need to create that file in the same
-        // directory as this file, and it should contain the follow credentials:
+        // The folloing file is excluded from the public git repository (.gitignore) to prevent 
+        // accidental exposure of database credentials. However, you will need to create that file
+        // in the same directory as this file, and it should contain the follow credentials:
         // $database = '[A]';
         // $hostname = '[B]';
         // $username = '[C]';

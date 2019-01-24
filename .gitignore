@@ -1,6 +1,6 @@
 _resources
 composer.lock
-database-credentials.php
+database_credentials.php
 
 
 ####################################################################################################

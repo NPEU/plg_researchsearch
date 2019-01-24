@@ -9,10 +9,12 @@
 
 defined('_JEXEC') or die;
 
+require_once JPATH_ADMINISTRATOR . '/components/com_finder/helpers/indexer/adapter.php';
+
 /**
  * Indexes research profiles from the Programme of Work database.
  */
-class plgFinderResearchSearch extends JPlugin
+class plgFinderResearchSearch extends FinderIndexerAdapter
 {
     protected $autoloadLanguage = true;
 

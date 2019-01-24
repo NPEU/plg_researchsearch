@@ -168,7 +168,7 @@ class plgFinderResearchSearch extends FinderIndexerAdapter
      *
      * @throws  Exception on database error.
      */
-    protected function getItems($offset, $limit, $sql = null)
+    protected function getItems($offset, $limit, $query = null)
     {
         JLog::add('FinderIndexerAdapter::getItems', JLog::INFO);
 
@@ -176,7 +176,7 @@ class plgFinderResearchSearch extends FinderIndexerAdapter
 
         // Get the content items to index.
         // Missed body
-        $stmt = $this->r_db->query($this->getListQuery($sql));
+        $stmt = $this->r_db->query($this->getListQuery($query));
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Convert the items to result objects.

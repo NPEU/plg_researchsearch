@@ -52,7 +52,7 @@ class plgFinderResearchSearch extends FinderIndexerAdapter
         parent::__construct($subject, $config);
         $this->loadLanguage();
 
-        // The folloing file is excluded from the public git repository (.gitignore) to prevent
+        // The following file is excluded from the public git repository (.gitignore) to prevent
         // accidental exposure of database credentials. However, you will need to create that file
         // in the same directory as this file, and it should contain the follow credentials:
         // $database = '[A]';

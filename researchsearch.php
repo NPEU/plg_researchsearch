@@ -19,13 +19,6 @@ class plgFinderResearchSearch extends FinderIndexerAdapter
     protected $autoloadLanguage = true;
 
     /**
-     * The research database object.
-     *
-     * @var    object
-     */
-    protected $r_db;
-
-    /**
      * The extension name.
      *
      * @var    string
@@ -51,29 +44,6 @@ class plgFinderResearchSearch extends FinderIndexerAdapter
 
         parent::__construct($subject, $config);
         $this->loadLanguage();
-
-        // The following file is excluded from the public git repository (.gitignore) to prevent
-        // accidental exposure of database credentials. However, you will need to create that file
-        // in the same directory as this file, and it should contain the follow credentials:
-        // $database = '[A]';
-        // $hostname = '[B]';
-        // $username = '[C]';
-        // $password = '[D]';
-        //
-        // if you prefer to store these elsewhere, then the database_credentials.php can instead
-        // require another file or indeed any other mechansim of retrieving the credentials, just so
-        // long as those four variables are assigned.
-        require_once('database_credentials.php');
-
-        try {
-            $this->r_db = new PDO("mysql:host=$hostname;dbname=$database", $username, $password, array(
-                PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8;'
-            ));
-        }
-        catch(PDOException $e) {
-            echo $e->getMessage();
-            exit;
-        }
     }
 
     /**
@@ -116,45 +86,15 @@ class plgFinderResearchSearch extends FinderIndexerAdapter
      */
     protected function getListQuery($sql = null)
     {
-        $sql = '
-            SELECT
-                pr.project_id AS id,
-                pr.title,
-                pr.alias,
-                pr.date_created AS publish_start_date,
-                pr.date_modified AS modified,
-                t.html AS summary
-            FROM pow_projects pr
-            JOIN cms_component_text t ON pr.text_id = t.component_id
-            WHERE pr.status_id > 0
-            AND pr.included = 1;
-        ';
-        return $sql;
-    }
+        $db = JFactory::getDbo();
+        
+        // Check if we can use the supplied SQL query.
+        $query = $query instanceof JDatabaseQuery ? $query : $db->getQuery(true)
+            ->select('a.id, a.title, a.alias, a.content, a.created AS start_date')
+            ->from('#__researchprojects AS a')
+            ->where('a.state = 1');
 
-    /**
-     * Method to get the number of content items available to index.
-     *
-     * @return  integer  The number of content items available to index.
-     *
-     * @throws  Exception on database error.
-     */
-    protected function getContentCount()
-    {
-        $sql = '
-            SELECT count(*) as count
-            FROM pow_projects pr
-            WHERE pr.status_id > 0
-            AND pr.included = 1;
-        ';
-        $stmt = $this->r_db->query($sql);
-
-        if ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $count = (int) $result['count'];
-            return $count;
-        }
-
-        return 0;
+        return $query;
     }
 
     /**
@@ -170,14 +110,11 @@ class plgFinderResearchSearch extends FinderIndexerAdapter
      */
     protected function getItems($offset, $limit, $query = null)
     {
-        JLog::add('FinderIndexerAdapter::getItems', JLog::INFO);
-
         $items = array();
 
         // Get the content items to index.
-        // Missed body
-        $stmt = $this->r_db->query($this->getListQuery($query));
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $this->db->setQuery($this->getListQuery($query), $offset, $limit);
+        $rows = $this->db->loadAssocList();
 
         // Convert the items to result objects.
         foreach ($rows as $row) {
@@ -185,7 +122,7 @@ class plgFinderResearchSearch extends FinderIndexerAdapter
             $item = JArrayHelper::toObject($row, 'FinderIndexerResult');
 
             // Sort out endcoding stuff:
-            $item->summary  = $this->utf8_convert($item->summary);
+            #$item->summary  = $this->utf8_convert($item->summary);
 
             // Set the item type.
             $item->type_id = $this->type_id;
@@ -200,49 +137,20 @@ class plgFinderResearchSearch extends FinderIndexerAdapter
             if (isset($row->extension)) {
                 $item->extension = $row->extension;
             }
-            $item->alias  = $item->alias . '-' . $item->id;
-            $item->url    = '/research/' . $item->alias;
-            $item->route  = '/research/' . $item->alias;
+
+            // Create a useful summary to display:
+            $item->summary = $item->title . ': ' . $item->content;
+
+            $item->url    = '/research/projects/' . $item->id . '-' . $item->alias;
+            $item->route  = '/research/projects/' . $item->id . '-' . $item->alias;
             $item->state  = 1;
             $item->access = 1;
 
             // Add the item to the stack.
             $items[] = $item;
-
         }
+
         return $items;
-    }
-
-    /**
-     * Method to get a content item to index.
-     *
-     * @param   integer  $id  The id of the content item.
-     *
-     * @return  FinderIndexerResult  A FinderIndexerResult object.
-     *
-     * @throws  Exception on database error.
-     */
-    protected function getItem($id)
-    {
-        JLog::add('FinderIndexerAdapter::getItem', JLog::INFO);
-
-        // Get the list query and add the extra WHERE clause.
-        $sql = $this->getListQuery();
-        $sql = str_replace(';', ' AND pr.project_id = ' . $id . ';');
-
-        $stmt = $this->r_db->query($sql);
-        $row  = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        // Convert the item to a result object.
-        $item = JArrayHelper::toObject($row, 'FinderIndexerResult');
-
-        // Set the item type.
-        $item->type_id = $this->type_id;
-
-        // Set the item layout.
-        $item->layout = $this->layout;
-
-        return $item;
     }
 
     /**
